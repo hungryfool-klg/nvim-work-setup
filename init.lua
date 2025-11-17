@@ -1,0 +1,6 @@
+require('config.options')
+require('config.keymaps')
+require('core.lsp').setup()
+require('core.diagnostics')
+require('languages')
+require('plugins')
