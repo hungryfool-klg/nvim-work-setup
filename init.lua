@@ -1,6 +1,5 @@
 require('config.options')
 require('config.keymaps')
-require('core.lsp').setup()
-require('core.diagnostics')
-require('languages')
+require('lsp-config')
 require('plugins')
+require('languages.rust')

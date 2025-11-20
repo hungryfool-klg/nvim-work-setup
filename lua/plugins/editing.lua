@@ -71,22 +71,36 @@ return {
           "rust",
           "toml",
         },
-        highlight = { enable = true },
+        highlight = {
+          enable = true,
+          disable = function(lang, buf)
+            local max_filesize = 100 * 1024 -- 100 KB
+            local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
+            if ok and stats and stats.size > max_filesize then
+              return true
+            end
+          end,
+        },
         indent = { enable = true },
       })
 
-      require("treesitter-context").setup({
-        enable = true,
-        max_lines = 0,
-        min_window_height = 0,
-        line_numbers = true,
-        multiline_threshold = 20,
-        trim_scope = "outer",
-        mode = "cursor",
-        separator = nil,
-        zindex = 20,
-        on_attach = nil,
-      })
+      local ok, ts_context = pcall(require, "treesitter-context")
+      if ok then
+        ts_context.setup({
+          enable = true,
+          max_lines = 0,
+          min_window_height = 0,
+          line_numbers = true,
+          multiline_threshold = 20,
+          trim_scope = "outer",
+          mode = "cursor",
+          separator = nil,
+          zindex = 20,
+          on_attach = function(buf)
+            return vim.api.nvim_buf_is_valid(buf)
+          end,
+        })
+      end
     end,
   },
 

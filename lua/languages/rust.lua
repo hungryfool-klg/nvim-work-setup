@@ -1,21 +1,18 @@
 local lsp_core = require('core.lsp')
+local lspconfig = require('lspconfig')
 
-vim.lsp.config('rust_analyzer', {
-  cmd = { 'rust-analyzer' },
-  filetypes = { 'rust' },
-  root_markers = { 'Cargo.toml', 'Cargo.lock', '.git' },
+lspconfig.rust_analyzer.setup({
   capabilities = lsp_core.capabilities(),
+  on_attach = lsp_core.on_attach,
   settings = {
     ['rust-analyzer'] = {
       cargo = {
-        allFeatures = true,
         loadOutDirsFromCheck = true,
         buildScripts = {
-          enable = true,
+          enable = false,
         },
       },
       checkOnSave = {
-        allFeatures = true,
         command = 'clippy',
         extraArgs = { '--no-deps' },
       },
@@ -112,43 +109,141 @@ vim.lsp.config('rust_analyzer', {
 vim.api.nvim_create_autocmd('FileType', {
   pattern = 'rust',
   callback = function(args)
-    vim.lsp.start({ name = 'rust_analyzer', bufnr = args.buf })
-
     local opts = { noremap = true, silent = true, buffer = args.buf }
 
-    vim.keymap.set('n', '<leader>cr', function()
-      vim.cmd('!cargo run')
-    end, vim.tbl_extend('force', opts, { desc = 'Cargo run' }))
+    -- Rust project commands with accessible <leader>cg prefix (cargo)
+    local Terminal = require('toggleterm.terminal').Terminal
 
-    vim.keymap.set('n', '<leader>ct', function()
-      vim.cmd('!cargo test')
-    end, vim.tbl_extend('force', opts, { desc = 'Cargo test' }))
+    vim.keymap.set('n', '<leader>cgr', function()
+      local cargo_run = Terminal:new({
+        cmd = "cargo run",
+        direction = "float",
+        close_on_exit = false,
+      })
+      cargo_run:toggle()
+    end, vim.tbl_extend('force', opts, { desc = 'Cargo: Run project' }))
 
-    vim.keymap.set('n', '<leader>cb', function()
-      vim.cmd('!cargo build')
-    end, vim.tbl_extend('force', opts, { desc = 'Cargo build' }))
+    vim.keymap.set('n', '<leader>cgt', function()
+      local cargo_test = Terminal:new({
+        cmd = "cargo test",
+        direction = "float",
+        close_on_exit = false,
+      })
+      cargo_test:toggle()
+    end, vim.tbl_extend('force', opts, { desc = 'Cargo: Test project' }))
 
-    vim.keymap.set('n', '<leader>cC', function()
-      vim.cmd('!cargo check')
-    end, vim.tbl_extend('force', opts, { desc = 'Cargo check' }))
+    vim.keymap.set('n', '<leader>cgb', function()
+      local cargo_build = Terminal:new({
+        cmd = "cargo build",
+        direction = "float",
+        close_on_exit = false,
+      })
+      cargo_build:toggle()
+    end, vim.tbl_extend('force', opts, { desc = 'Cargo: Build project' }))
 
-    vim.keymap.set('n', '<leader>cl', function()
-      vim.cmd('!cargo clippy')
-    end, vim.tbl_extend('force', opts, { desc = 'Cargo clippy' }))
+    vim.keymap.set('n', '<leader>cgc', function()
+      local cargo_check = Terminal:new({
+        cmd = "cargo check",
+        direction = "float",
+        close_on_exit = false,
+      })
+      cargo_check:toggle()
+    end, vim.tbl_extend('force', opts, { desc = 'Cargo: Check project' }))
 
-    vim.keymap.set('n', '<leader>cF', function()
-      vim.cmd('!cargo fmt')
-    end, vim.tbl_extend('force', opts, { desc = 'Cargo format' }))
+    vim.keymap.set('n', '<leader>cgl', function()
+      local cargo_clippy = Terminal:new({
+        cmd = "cargo clippy",
+        direction = "float",
+        close_on_exit = false,
+      })
+      cargo_clippy:toggle()
+    end, vim.tbl_extend('force', opts, { desc = 'Cargo: Lint with clippy' }))
 
-    vim.keymap.set('n', '<leader>cd', function()
-      vim.cmd('!cargo doc --open')
-    end, vim.tbl_extend('force', opts, { desc = 'Cargo doc' }))
+    vim.keymap.set('n', '<leader>cgf', function()
+      local cargo_fmt = Terminal:new({
+        cmd = "cargo fmt",
+        direction = "float",
+        close_on_exit = false,
+      })
+      cargo_fmt:toggle()
+    end, vim.tbl_extend('force', opts, { desc = 'Cargo: Format code' }))
 
+    vim.keymap.set('n', '<leader>cgd', function()
+      local cargo_doc = Terminal:new({
+        cmd = "cargo doc --open",
+        direction = "float",
+        close_on_exit = false,
+      })
+      cargo_doc:toggle()
+    end, vim.tbl_extend('force', opts, { desc = 'Cargo: Generate docs' }))
+
+    vim.keymap.set('n', '<leader>cgR', function()
+      local cargo_run_release = Terminal:new({
+        cmd = "cargo run --release",
+        direction = "float",
+        close_on_exit = false,
+      })
+      cargo_run_release:toggle()
+    end, vim.tbl_extend('force', opts, { desc = 'Cargo: Run release build' }))
+
+    vim.keymap.set('n', '<leader>cgB', function()
+      local cargo_build_release = Terminal:new({
+        cmd = "cargo build --release",
+        direction = "float",
+        close_on_exit = false,
+      })
+      cargo_build_release:toggle()
+    end, vim.tbl_extend('force', opts, { desc = 'Cargo: Build release' }))
+
+    vim.keymap.set('n', '<leader>cgu', function()
+      local cargo_update = Terminal:new({
+        cmd = "cargo update",
+        direction = "float",
+        close_on_exit = false,
+      })
+      cargo_update:toggle()
+    end, vim.tbl_extend('force', opts, { desc = 'Cargo: Update dependencies' }))
+
+    vim.keymap.set('n', '<leader>cga', function()
+      local crate = vim.fn.input('Crate name: ')
+      if crate ~= '' then
+        local cargo_add = Terminal:new({
+          cmd = "cargo add " .. crate,
+          direction = "float",
+          close_on_exit = false,
+        })
+        cargo_add:toggle()
+      end
+    end, vim.tbl_extend('force', opts, { desc = 'Cargo: Add dependency' }))
+
+    vim.keymap.set('n', '<leader>cgn', function()
+      local name = vim.fn.input('Project name: ')
+      if name ~= '' then
+        local cargo_new = Terminal:new({
+          cmd = "cargo new " .. name,
+          direction = "float",
+          close_on_exit = false,
+        })
+        cargo_new:toggle()
+      end
+    end, vim.tbl_extend('force', opts, { desc = 'Cargo: New project' }))
+
+    -- Keep F-key debug bindings consistent with dotnet
     local dap = require('dap')
-    vim.keymap.set('n', '<leader>dd', dap.toggle_breakpoint, vim.tbl_extend('force', opts, { desc = 'Toggle breakpoint' }))
-    vim.keymap.set('n', '<leader>dc', dap.continue, vim.tbl_extend('force', opts, { desc = 'Debug continue' }))
-    vim.keymap.set('n', '<leader>dn', dap.step_over, vim.tbl_extend('force', opts, { desc = 'Debug step over' }))
-    vim.keymap.set('n', '<leader>di', dap.step_into, vim.tbl_extend('force', opts, { desc = 'Debug step into' }))
-    vim.keymap.set('n', '<leader>do', dap.step_out, vim.tbl_extend('force', opts, { desc = 'Debug step out' }))
+    if not vim.g.rust_debug_keys_set then
+      vim.keymap.set('n', '<F5>', dap.continue, { desc = 'Debug: Start/Continue' })
+      vim.keymap.set('n', '<F1>', dap.step_into, { desc = 'Debug: Step Into' })
+      vim.keymap.set('n', '<F2>', dap.step_over, { desc = 'Debug: Step Over' })
+      vim.keymap.set('n', '<F3>', dap.step_out, { desc = 'Debug: Step Out' })
+      vim.keymap.set('n', '<F9>', dap.toggle_breakpoint, { desc = 'Debug: Toggle Breakpoint' })
+      vim.keymap.set('n', '<S-F9>', function()
+        dap.set_breakpoint(vim.fn.input('Breakpoint condition: '))
+      end, { desc = 'Debug: Set Conditional Breakpoint' })
+
+      local dapui = require('dapui')
+      vim.keymap.set('n', '<F7>', dapui.toggle, { desc = 'Debug: Toggle UI' })
+
+      vim.g.rust_debug_keys_set = true
+    end
   end,
 })
