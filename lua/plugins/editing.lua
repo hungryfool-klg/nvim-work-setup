@@ -262,17 +262,7 @@ return {
           timeout_ms = 10000,
         },
         rubocop = {
-          command = (function()
-            local handle = io.popen("rvm current 2>/dev/null")
-            local ruby_version = handle:read("*a"):gsub("%s+", "")
-            handle:close()
-
-            if ruby_version and ruby_version ~= "" then
-              return string.format("%s/.rvm/gems/%s/bin/rubocop", os.getenv("HOME"), ruby_version)
-            end
-            return "rubocop"
-          end)(),
-          args = { "--stdin", "$FILENAME", "--format", "quiet", "--stderr", "--autocorrect" },
+          command = vim.fn.expand("~/.local/bin/rubocop-wrapper.sh"),
           stdin = true,
         },
       },

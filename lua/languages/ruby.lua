@@ -26,6 +26,15 @@ vim.api.nvim_create_autocmd("FileType", {
   callback = function(args)
     local opts = { noremap = true, silent = true, buffer = args.buf }
 
+    -- Ruby-specific indentation settings
+    vim.bo[args.buf].tabstop = 2
+    vim.bo[args.buf].softtabstop = 2
+    vim.bo[args.buf].shiftwidth = 2
+    vim.bo[args.buf].expandtab = true
+    vim.bo[args.buf].autoindent = true
+    vim.bo[args.buf].smartindent = true
+    vim.bo[args.buf].cindent = false
+
     -- Ruby project commands with accessible <leader>cr prefix (ruby)
     local Terminal = require("toggleterm.terminal").Terminal
 
